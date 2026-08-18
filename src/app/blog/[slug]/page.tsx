@@ -1,6 +1,7 @@
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Comments from "@/components/Comments";
 
 // Required for Next.js static export
 export async function generateStaticParams() {
@@ -40,13 +41,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         dangerouslySetInnerHTML={{ __html: postData.contentHtml || "" }} 
       />
 
-      {/* Supabase Comments Section Placeholder */}
-      <section className="mt-16 pt-8 border-t border-neutral-800">
-        <h2 className="text-2xl font-bold text-white mb-6">Discussion</h2>
-        <div className="p-8 border border-neutral-800 rounded-2xl bg-neutral-900/30 text-center">
-          <p className="text-neutral-400">Comments coming soon via Supabase!</p>
-        </div>
-      </section>
+      {/* Giscus Comments Section */}
+      <Comments />
     </article>
   );
 }
