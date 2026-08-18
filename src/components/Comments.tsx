@@ -9,9 +9,9 @@ export default function Comments() {
       <Giscus
         id="comments"
         repo="developeradhi/blog"
-        repoId="R_kgDOMmX1XQ" 
+        repoId="R_kgDOT7s1ZA" 
         category="General"
-        categoryId="DIC_kwDOMmX1Xc4Cg8P5"
+        categoryId="DIC_kwDOT7s1ZM4DDrMW"
         mapping="pathname"
         term="Welcome to @giscus/react component!"
         reactionsEnabled="1"
