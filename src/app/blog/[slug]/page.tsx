@@ -1,7 +1,7 @@
 import { getPostData, getSortedPostsData } from "@/lib/posts";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Comments from "@/components/Comments";
+import LinkedInComments from "@/components/LinkedInComments";
 
 // Required for Next.js static export
 export async function generateStaticParams() {
@@ -41,8 +41,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         dangerouslySetInnerHTML={{ __html: postData.contentHtml || "" }} 
       />
 
-      {/* Giscus Comments Section */}
-      <Comments />
+      {/* LinkedIn Style Comments Demo */}
+      <LinkedInComments />
     </article>
   );
 }
