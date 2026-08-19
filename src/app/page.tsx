@@ -20,7 +20,7 @@ export default function Home() {
         <div className="flex flex-col gap-8">
           {allPostsData.map(({ slug, title, date, excerpt }) => (
             <article key={slug} className="group relative flex flex-col gap-2 p-4 -mx-4 rounded-2xl hover:bg-neutral-900/50 transition-colors">
-              <Link href={`/blog/${slug}`} className="absolute inset-0 z-10">
+              <Link href={`/${slug}`} className="absolute inset-0 z-10">
                 <span className="sr-only">View Article</span>
               </Link>
               <div className="flex items-center gap-3 text-sm text-neutral-500 font-mono">
