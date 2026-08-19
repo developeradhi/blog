@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build with Next.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://mznzvxwzugimqzhhdnae.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16bnp2eHd6dWdpbXF6aGhkbmFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5ODkzNjksImV4cCI6MjEwMTU2NTM2OX0.AL0sY92IZeP_vSyqYRoKoKkE3oMPvNYukNU3uNbJhWs"
         run: npx next build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
