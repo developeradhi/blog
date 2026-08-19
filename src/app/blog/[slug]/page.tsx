@@ -42,7 +42,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       />
 
       {/* LinkedIn Style Comments Demo */}
-      <LinkedInComments />
+      <LinkedInComments slug={postData.slug} />
     </article>
   );
 }
