@@ -14,8 +14,24 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Adarsh B A | Blog",
-  description: "Personal developer blog of Adarsh B A. Thoughts on Full-Stack Engineering, Next.js, and System Architecture.",
+  title: "Adarsh B A | Developer Blog & System Architecture",
+  description: "The official engineering blog of Adarsh B A. Deep dives into Full-Stack Development, System Architecture, and building scalable applications.",
+  keywords: ["Adarsh B A", "developeradhi", "Software Engineer", "Full Stack Developer", "Next.js", "System Architecture", "Tech Blog"],
+  authors: [{ name: "Adarsh B A", url: "https://developeradhi.is-a.dev" }],
+  creator: "Adarsh B A",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://developeradhi.is-a.dev/blog",
+    title: "Adarsh B A | Developer Blog",
+    description: "Deep technical dives by Adarsh B A into Full-Stack Development and System Architecture.",
+    siteName: "Adarsh B A Blog",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Adarsh B A | Developer Blog",
+    description: "Deep technical dives by Adarsh B A into Full-Stack Development and System Architecture.",
+  },
 };
 
 export default function RootLayout({

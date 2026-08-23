@@ -11,6 +11,30 @@ export async function generateStaticParams() {
   }));
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const postData = await getPostData(resolvedParams.slug);
+  if (!postData) return { title: "Post Not Found | Adarsh B A" };
+
+  return {
+    title: `${postData.title} | Adarsh B A`,
+    description: postData.excerpt,
+    authors: [{ name: "Adarsh B A" }],
+    openGraph: {
+      title: `${postData.title} | Adarsh B A`,
+      description: postData.excerpt,
+      type: "article",
+      publishedTime: postData.date,
+      authors: ["Adarsh B A"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${postData.title} | Adarsh B A`,
+      description: postData.excerpt,
+    },
+  };
+}
+
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   let postData;
