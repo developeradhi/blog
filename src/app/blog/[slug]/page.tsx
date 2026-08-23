@@ -5,7 +5,7 @@ import LinkedInComments from "@/components/LinkedInComments";
 
 // Required for Next.js static export
 export async function generateStaticParams() {
-  const posts = getSortedPostsData();
+  const posts = await getSortedPostsData();
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -16,6 +16,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   let postData;
   try {
     postData = await getPostData(resolvedParams.slug);
+    if (!postData) notFound();
   } catch (e) {
     notFound();
   }

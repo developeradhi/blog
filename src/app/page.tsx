@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getSortedPostsData } from "@/lib/posts";
 
-export default function Home() {
-  const allPostsData = getSortedPostsData();
+export default async function Home() {
+  const allPostsData = await getSortedPostsData();
 
   return (
     <div className="flex flex-col gap-16 pb-20">

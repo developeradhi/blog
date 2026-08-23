@@ -1,10 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { remark } from 'remark';
-import html from 'remark-html';
-
-const postsDirectory = path.join(process.cwd(), 'src/content/posts');
+import { supabase } from "./supabase";
 
 export type PostData = {
   slug: string;
@@ -14,54 +8,53 @@ export type PostData = {
   contentHtml?: string;
 };
 
-export function getSortedPostsData(): PostData[] {
-  // Get file names under /posts
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = fileNames.map((fileName) => {
-    // Remove ".md" from file name to get slug
-    const slug = fileName.replace(/\.md$/, '');
+// Next.js requires synchronous-looking static paths or simple async fetching during build
+export async function getSortedPostsData(): Promise<PostData[]> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("slug, title, excerpt, created_at")
+    .order("created_at", { ascending: false });
 
-    // Read markdown file as string
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
+  if (error) {
+    console.error("Error fetching posts from Supabase:", error);
+    return [];
+  }
 
-    // Use gray-matter to parse the post metadata section
-    const matterResult = matter(fileContents);
-
-    // Combine the data with the slug
-    return {
-      slug,
-      ...(matterResult.data as { title: string; date: string; excerpt: string }),
-    };
-  });
-  
-  // Sort posts by date
-  return allPostsData.sort((a, b) => {
-    if (a.date < b.date) {
-      return 1;
-    } else {
-      return -1;
-    }
-  });
+  return (data || []).map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    date: post.created_at,
+    excerpt: post.excerpt,
+  }));
 }
 
-export async function getPostData(slug: string): Promise<PostData> {
-  const fullPath = path.join(postsDirectory, `${slug}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
+export async function getPostData(slug: string): Promise<PostData | null> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("slug, title, excerpt, content, created_at")
+    .eq("slug", slug)
+    .single();
 
-  // Use gray-matter to parse the post metadata section
-  const matterResult = matter(fileContents);
+  if (error || !data) {
+    console.error(`Error fetching post ${slug} from Supabase:`, error);
+    return null;
+  }
 
-  // Use remark to convert markdown into HTML string
+  // We are storing raw markdown in Supabase, but we want to render it as HTML.
+  // We can use the remark engine here to parse the markdown just like before!
+  const { remark } = await import("remark");
+  const html = await import("remark-html");
+
   const processedContent = await remark()
-    .use(html)
-    .process(matterResult.content);
+    .use(html.default)
+    .process(data.content);
   const contentHtml = processedContent.toString();
 
-  // Combine the data with the id and contentHtml
   return {
-    slug,
+    slug: data.slug,
+    title: data.title,
+    date: data.created_at,
+    excerpt: data.excerpt,
     contentHtml,
-    ...(matterResult.data as { title: string; date: string; excerpt: string }),
   };
 }
