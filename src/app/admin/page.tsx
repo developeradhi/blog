@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,6 +28,11 @@ export default function AdminDashboard() {
       setSession(session);
     });
 
+    // Fetch current maintenance mode status
+    supabase.from("site_settings").select("is_maintenance_mode").eq("id", 1).single().then(({ data }) => {
+      if (data) setMaintenanceMode(data.is_maintenance_mode);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -34,6 +40,18 @@ export default function AdminDashboard() {
     e.preventDefault();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setMessage(error.message);
+  };
+
+  const toggleMaintenance = async () => {
+    const newValue = !maintenanceMode;
+    const { error } = await supabase.from("site_settings").update({ is_maintenance_mode: newValue }).eq("id", 1);
+    
+    if (error) {
+      setMessage(`Error updating maintenance mode: ${error.message}`);
+    } else {
+      setMaintenanceMode(newValue);
+      setMessage(`Portfolio maintenance mode is now ${newValue ? 'ON' : 'OFF'}!`);
+    }
   };
 
   const handleSave = async () => {
@@ -102,9 +120,17 @@ export default function AdminDashboard() {
     <div className="max-w-4xl mx-auto w-full flex flex-col gap-8 py-8">
       <div className="flex justify-between items-center border-b border-neutral-800 pb-6">
         <h1 className="text-3xl font-bold text-white">CMS Dashboard</h1>
-        <button onClick={() => supabase.auth.signOut()} className="text-sm text-neutral-400 hover:text-white">
-          Sign Out
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={toggleMaintenance} 
+            className={`text-sm font-bold py-2 px-4 rounded-lg transition-colors ${maintenanceMode ? 'bg-red-500/20 text-red-500 border border-red-500' : 'bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white'}`}
+          >
+            {maintenanceMode ? '🔴 Portfolio Offline' : '🟢 Portfolio Online'}
+          </button>
+          <button onClick={() => supabase.auth.signOut()} className="text-sm text-neutral-400 hover:text-white">
+            Sign Out
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6">
