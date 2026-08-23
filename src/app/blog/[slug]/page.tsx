@@ -6,6 +6,9 @@ import LinkedInComments from "@/components/LinkedInComments";
 // Required for Next.js static export
 export async function generateStaticParams() {
   const posts = await getSortedPostsData();
+  if (!posts || posts.length === 0) {
+    return [{ slug: 'empty-database-fallback' }];
+  }
   return posts.map((post) => ({
     slug: post.slug,
   }));
