@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { loginAction } from "./actions";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [requireMFA, setRequireMFA] = useState(false);
+  const [factorId, setFactorId] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,14 +17,62 @@ export default function LoginForm() {
     setLoading(true);
     setMessage("");
 
-    const res = await loginAction(email, password, requireMFA ? mfaCode : undefined);
-    
-    if (res?.error) {
-      setMessage(res.error);
-    } else if (res?.requireMFA) {
-      setRequireMFA(true);
-    } else if (res?.success) {
-      // successful login, the server revalidated the path so page will refresh!
+    // 1. Password Rules Validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      // Generic error for security
+      setMessage("Invalid credentials.");
+      setLoading(false);
+      return;
+    }
+
+    if (requireMFA) {
+      // Handle MFA Verification
+      const challenge = await supabase.auth.mfa.challenge({ factorId });
+      if (challenge.error) {
+        setMessage("Invalid credentials or locked out.");
+        setLoading(false);
+        return;
+      }
+
+      const verify = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challenge.data.id,
+        code: mfaCode,
+      });
+
+      if (verify.error) {
+        setMessage("Invalid credentials.");
+      }
+      setLoading(false);
+      return;
+    }
+
+    // 2. Initial Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      // Supabase handles rate-limiting internally here, but we enforce generic errors
+      setMessage("Invalid credentials or account locked.");
+      setLoading(false);
+      return;
+    }
+
+    // 3. MFA Detection
+    const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal.data?.nextLevel === 'aal2' && aal.data?.currentLevel === 'aal1') {
+      const factors = await supabase.auth.mfa.listFactors();
+      const totpFactor = factors.data?.totp[0];
+      
+      if (totpFactor) {
+        setRequireMFA(true);
+        setFactorId(totpFactor.id);
+      } else {
+        setMessage("Invalid credentials."); // generic fallback
+      }
     }
 
     setLoading(false);

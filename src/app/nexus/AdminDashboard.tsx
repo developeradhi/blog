@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { logoutAction, savePostAction, toggleMaintenanceAction, deletePostAction } from "./actions";
-import { supabase } from "@/lib/supabase"; // We can still use client supabase for fetching unprotected data like posts!
+import { supabase } from "@/lib/supabase";
 
 export default function AdminDashboard({ user }: { user: any }) {
   // Post state
@@ -34,16 +33,18 @@ export default function AdminDashboard({ user }: { user: any }) {
   };
 
   const handleLogout = async () => {
-    await logoutAction();
+    await supabase.auth.signOut();
   };
 
   const toggleMaintenance = async () => {
-    const res = await toggleMaintenanceAction(maintenanceMode);
-    if (res.error) {
-      setMessage(res.error);
-    } else if (res.success) {
-      setMaintenanceMode(res.newValue!);
-      setMessage(`Portfolio maintenance mode is now ${res.newValue ? 'ON' : 'OFF'}!`);
+    const newValue = !maintenanceMode;
+    const { error } = await supabase.from("site_settings").update({ is_maintenance_mode: newValue }).eq("id", 1);
+    
+    if (error) {
+      setMessage("Error updating setting.");
+    } else {
+      setMaintenanceMode(newValue);
+      setMessage(`Portfolio maintenance mode is now ${newValue ? 'ON' : 'OFF'}!`);
     }
   };
 
@@ -57,12 +58,12 @@ export default function AdminDashboard({ user }: { user: any }) {
 
   const handleDelete = async (deleteSlug: string) => {
     if (!confirm("Are you sure you want to delete this post?")) return;
-    const res = await deletePostAction(deleteSlug);
-    if (res.success) {
+    const { error } = await supabase.from("blog_posts").delete().eq("slug", deleteSlug);
+    if (!error) {
       fetchPosts();
       setMessage("Post deleted!");
     } else {
-      setMessage(res.error!);
+      setMessage("Error deleting post.");
     }
   };
 
@@ -75,23 +76,29 @@ export default function AdminDashboard({ user }: { user: any }) {
     setIsSaving(true);
     setMessage("");
 
-    const res = await savePostAction(slug, title, excerpt, content);
+    const { error } = await supabase.from("blog_posts").upsert({
+      slug,
+      title,
+      excerpt,
+      content,
+      created_at: new Date().toISOString()
+    });
 
     setIsSaving(false);
-    if (res.error) {
-      setMessage(`Error: ${res.error}`);
+    if (error) {
+      setMessage(`Error: ${error.message}`);
     } else {
       setMessage("Post saved successfully!");
       setSlug("");
       setTitle("");
       setExcerpt("");
       setContent("");
+      fetchPosts();
     }
   };
 
   const handleRebuild = async () => {
-    setMessage("Rebuild triggered! Your new post will be live in ~60 seconds.");
-    // Rebuild logic requiring GitHub PAT can be added to Server Actions here.
+    setMessage("SECURITY NOTICE: Cannot trigger deploy from client browser. Please use Supabase Webhooks or GitHub Actions directly.");
   };
 
   return (
