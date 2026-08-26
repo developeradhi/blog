@@ -98,7 +98,42 @@ export default function AdminDashboard({ user }: { user: any }) {
   };
 
   const handleRebuild = async () => {
-    setMessage("SECURITY NOTICE: Cannot trigger deploy from client browser. Please use Supabase Webhooks or GitHub Actions directly.");
+    setMessage("Initiating secure deployment...");
+    
+    // 1. Fetch the PAT securely from the database (only works because you are authenticated!)
+    const { data: secretData, error: secretError } = await supabase
+      .from("site_secrets")
+      .select("value")
+      .eq("id", "github_pat")
+      .single();
+
+    if (secretError || !secretData) {
+      setMessage("Error: Secure PAT not found in database. Please run the SQL setup script!");
+      return;
+    }
+
+    const pat = secretData.value;
+
+    // 2. Trigger the GitHub Action directly from the browser using the secure PAT
+    try {
+      const response = await fetch("https://api.github.com/repos/developeradhi/blog/actions/workflows/nextjs.yml/dispatches", {
+        method: "POST",
+        headers: {
+          "Accept": "application/vnd.github.v3+json",
+          "Authorization": `token ${pat}`
+        },
+        body: JSON.stringify({ ref: "main" })
+      });
+
+      if (response.ok) {
+        setMessage("Deployment triggered successfully! Your site will update in ~60 seconds.");
+      } else {
+        const errorText = await response.text();
+        setMessage(`Deployment failed: ${response.status} ${errorText}`);
+      }
+    } catch (e: any) {
+      setMessage(`Deployment error: ${e.message}`);
+    }
   };
 
   return (
