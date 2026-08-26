@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://developeradhi.is-a.dev/blog",
+    url: "https://adhi.is-a.dev/blog",
     title: "Adarsh B A | Developer Blog",
     description: "Deep technical dives by Adarsh B A into Full-Stack Development and System Architecture.",
     siteName: "Adarsh B A Blog",
@@ -54,7 +54,7 @@ export default function RootLayout({
               ADARSH <span className="text-neutral-500 font-light">BLOG</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <a href="https://developeradhi.is-a.dev" target="_blank" className="text-neutral-400 hover:text-emerald-400 transition-colors">Portfolio</a>
+              <a href="https://adhi.is-a.dev" target="_blank" className="text-neutral-400 hover:text-emerald-400 transition-colors">Portfolio</a>
               <a href="https://github.com/developeradhi" target="_blank" className="text-neutral-400 hover:text-emerald-400 transition-colors">GitHub</a>
             </div>
           </nav>
