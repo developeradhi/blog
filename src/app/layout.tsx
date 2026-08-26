@@ -34,6 +34,8 @@ export const metadata: Metadata = {
   },
 };
 
+import MaintenanceOverlay from "@/components/MaintenanceOverlay";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${plusJakarta.variable} ${firaCode.variable}`}>
       <body className="antialiased min-h-screen flex flex-col bg-[#070709] text-neutral-300 selection:bg-emerald-500/30 selection:text-emerald-200">
+        <MaintenanceOverlay />
         <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#070709]/70 border-b border-neutral-800/50">
           <nav className="max-w-4xl mx-auto w-full px-6 h-20 flex items-center justify-between">
             <Link href="/" className="font-bold text-xl tracking-tight text-white flex items-center gap-2 group">

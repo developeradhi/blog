@@ -12,8 +12,9 @@ export default function AdminDashboard({ user }: { user: any }) {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [blogMaintenanceMode, setBlogMaintenanceMode] = useState(false);
   
-  // Tabs: 'write' | 'manage'
+  // Tabs: 'write' | 'manage' | 'settings'
   const [activeTab, setActiveTab] = useState('write');
   const [existingPosts, setExistingPosts] = useState<any[]>([]);
 
@@ -23,8 +24,11 @@ export default function AdminDashboard({ user }: { user: any }) {
   }, []);
 
   const fetchSettings = async () => {
-    const { data } = await supabase.from("site_settings").select("is_maintenance_mode").eq("id", 1).single();
-    if (data) setMaintenanceMode(data.is_maintenance_mode);
+    const { data } = await supabase.from("site_settings").select("is_maintenance_mode, blog_maintenance_mode").eq("id", 1).single();
+    if (data) {
+      setMaintenanceMode(data.is_maintenance_mode || false);
+      setBlogMaintenanceMode(data.blog_maintenance_mode || false);
+    }
   };
 
   const fetchPosts = async () => {
@@ -36,15 +40,28 @@ export default function AdminDashboard({ user }: { user: any }) {
     await supabase.auth.signOut();
   };
 
-  const toggleMaintenance = async () => {
+  const togglePortfolioMaintenance = async () => {
     const newValue = !maintenanceMode;
     const { error } = await supabase.from("site_settings").update({ is_maintenance_mode: newValue }).eq("id", 1);
     
     if (error) {
-      setMessage("Error updating setting.");
+      setMessage("Error updating portfolio setting.");
     } else {
       setMaintenanceMode(newValue);
-      setMessage(`Portfolio maintenance mode is now ${newValue ? 'ON' : 'OFF'}!`);
+      setMessage(`Portfolio is now ${newValue ? 'OFFLINE' : 'ONLINE'}.`);
+    }
+  };
+
+  const toggleBlogMaintenance = async () => {
+    const newValue = !blogMaintenanceMode;
+    const { error } = await supabase.from("site_settings").update({ blog_maintenance_mode: newValue }).eq("id", 1);
+    
+    if (error) {
+      // If error, it might be because the column doesn't exist yet!
+      setMessage("Error: Make sure you ran the SQL to add the blog_maintenance_mode column!");
+    } else {
+      setBlogMaintenanceMode(newValue);
+      setMessage(`Blog is now ${newValue ? 'OFFLINE' : 'ONLINE'}.`);
     }
   };
 
@@ -100,7 +117,6 @@ export default function AdminDashboard({ user }: { user: any }) {
   const handleRebuild = async () => {
     setMessage("Initiating secure deployment...");
     
-    // 1. Fetch the PAT securely from the database (only works because you are authenticated!)
     const { data: secretData, error: secretError } = await supabase
       .from("site_secrets")
       .select("value")
@@ -114,7 +130,6 @@ export default function AdminDashboard({ user }: { user: any }) {
 
     const pat = secretData.value;
 
-    // 2. Trigger the GitHub Action directly from the browser using the secure PAT
     try {
       const response = await fetch("https://api.github.com/repos/developeradhi/blog/actions/workflows/nextjs.yml/dispatches", {
         method: "POST",
@@ -142,12 +157,6 @@ export default function AdminDashboard({ user }: { user: any }) {
         <h1 className="text-3xl font-bold text-white">NEXUS Command Center</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-neutral-500 font-mono hidden sm:inline-block">{user.email}</span>
-          <button 
-            onClick={toggleMaintenance} 
-            className={`text-sm font-bold py-2 px-4 rounded-lg transition-colors ${maintenanceMode ? 'bg-red-500/20 text-red-500 border border-red-500' : 'bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white'}`}
-          >
-            {maintenanceMode ? '🔴 Portfolio Offline' : '🟢 Portfolio Online'}
-          </button>
           <button onClick={handleLogout} className="text-sm text-neutral-400 hover:text-white">
             Sign Out
           </button>
@@ -158,19 +167,25 @@ export default function AdminDashboard({ user }: { user: any }) {
       <div className="flex gap-4 border-b border-neutral-800 pb-4">
         <button 
           onClick={() => setActiveTab('write')}
-          className={`text-sm font-bold px-4 py-2 rounded-md ${activeTab === 'write' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
+          className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'write' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
         >
           Write / Edit Post
         </button>
         <button 
           onClick={() => { setActiveTab('manage'); fetchPosts(); }}
-          className={`text-sm font-bold px-4 py-2 rounded-md ${activeTab === 'manage' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
+          className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'manage' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
         >
           Manage Posts
         </button>
+        <button 
+          onClick={() => setActiveTab('settings')}
+          className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'settings' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
+        >
+          Site Settings
+        </button>
       </div>
 
-      {activeTab === 'write' ? (
+      {activeTab === 'write' && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
@@ -236,7 +251,9 @@ export default function AdminDashboard({ user }: { user: any }) {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'manage' && (
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-bold text-white mb-4">Your Published Posts</h2>
           {existingPosts.map((post) => (
@@ -262,6 +279,48 @@ export default function AdminDashboard({ user }: { user: any }) {
             </div>
           ))}
           {existingPosts.length === 0 && <p className="text-neutral-500">No posts found in database.</p>}
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="flex flex-col gap-6">
+          <h2 className="text-xl font-bold text-white">System Maintenance Controls</h2>
+          
+          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 flex flex-col gap-6">
+            
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-6">
+              <div className="flex flex-col">
+                <h3 className="font-bold text-white text-lg">Main Portfolio</h3>
+                <p className="text-neutral-400 text-sm">developeradhi.github.io / adhi.is-a.dev</p>
+              </div>
+              <button 
+                onClick={togglePortfolioMaintenance} 
+                className={`text-sm font-bold py-3 px-6 rounded-lg transition-colors ${maintenanceMode ? 'bg-red-500/20 text-red-500 border border-red-500' : 'bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white hover:bg-neutral-700'}`}
+              >
+                {maintenanceMode ? '🔴 System Offline' : '🟢 System Online'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <h3 className="font-bold text-white text-lg">Blog Platform</h3>
+                <p className="text-neutral-400 text-sm">blog.adhi.is-a.dev (Requires rebuild after toggling)</p>
+              </div>
+              <button 
+                onClick={toggleBlogMaintenance} 
+                className={`text-sm font-bold py-3 px-6 rounded-lg transition-colors ${blogMaintenanceMode ? 'bg-red-500/20 text-red-500 border border-red-500' : 'bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white hover:bg-neutral-700'}`}
+              >
+                {blogMaintenanceMode ? '🔴 System Offline' : '🟢 System Online'}
+              </button>
+            </div>
+
+          </div>
+
+          {message && (
+            <div className="p-4 rounded-lg bg-neutral-900 border border-neutral-800 text-emerald-400 font-mono text-sm">
+              {message}
+            </div>
+          )}
         </div>
       )}
     </div>
