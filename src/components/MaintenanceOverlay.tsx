@@ -11,9 +11,19 @@ export default function MaintenanceOverlay() {
   useEffect(() => {
     // Check initial state
     const checkStatus = async () => {
-      const { data } = await supabase.from("site_settings").select("blog_maintenance_mode").eq("id", 1).single();
-      if (data?.blog_maintenance_mode) {
-        setIsMaintenance(true);
+      try {
+        const { data } = await supabase.from("site_settings").select("blog_maintenance_mode").eq("id", 1).single();
+        if (data?.blog_maintenance_mode) {
+          setIsMaintenance(true);
+        } else {
+          setIsMaintenance(false);
+          const flicker = document.getElementById('maintenance-anti-flicker');
+          if(flicker) flicker.remove();
+        }
+      } catch (e) {
+        setIsMaintenance(false);
+        const flicker = document.getElementById('maintenance-anti-flicker');
+        if(flicker) flicker.remove();
       }
     };
     
@@ -26,6 +36,10 @@ export default function MaintenanceOverlay() {
 
   // Never block the admin portal!
   if (pathname === "/nexus" || pathname?.startsWith("/nexus/")) {
+    if (typeof window !== "undefined") {
+      const flicker = document.getElementById('maintenance-anti-flicker');
+      if(flicker) flicker.remove();
+    }
     return null;
   }
 
