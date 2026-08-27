@@ -51,7 +51,7 @@ export default function MaintenanceOverlay() {
       {/* Full-bleed cinematic background — writer's desk */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=85&w=2400')" }}
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1455390582262-044cdead277a?q=90&w=2400')" }}
       />
       {/* Dark overlay for readability */}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(20,20,25,0.72) 0%, rgba(20,20,25,0.60) 60%, rgba(20,20,25,0.80) 100%)' }} />
