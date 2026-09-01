@@ -44,8 +44,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${plusJakarta.variable} ${firaCode.variable}`}>
       <head>
-        <style id="maintenance-anti-flicker" dangerouslySetInnerHTML={{ __html: 'body { opacity: 0 !important; pointer-events: none; }' }} />
-        {/* Anti-flicker is removed by MaintenanceOverlay.tsx — do NOT add an unconditional timeout here */}
+        <style id="maintenance-anti-flicker" dangerouslySetInnerHTML={{ __html: 'body > *:not(#blog-maintenance-overlay) { opacity: 0 !important; pointer-events: none; }' }} />
+        {/* Anti-flicker is removed by MaintenanceOverlay.tsx ONLY when the site is online */}
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-[#070709] text-neutral-300 selection:bg-emerald-500/30 selection:text-emerald-200">
         <MaintenanceOverlay />

@@ -46,7 +46,7 @@ export default function MaintenanceOverlay() {
   if (!isMaintenance) return null;
 
   return (
-    <div className="fixed inset-0 z-[999999] overflow-hidden" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div id="blog-maintenance-overlay" className="fixed inset-0 z-[999999] overflow-hidden" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
       {/* Full-bleed cinematic background — writer's desk */}
       <div
