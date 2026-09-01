@@ -61,29 +61,31 @@ export default function MaintenanceOverlay() {
         background: 'rgba(22, 22, 28, 0.90)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
-        padding: '18px 32px',
+        padding: 'clamp(12px, 3vw, 18px) clamp(16px, 5vw, 32px)',
         display: 'flex', alignItems: 'center',
       }}>
-        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
+        <span style={{ fontSize: 'clamp(0.95rem, 3vw, 1.1rem)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em' }}>
           blog.adhi.is-a.dev
         </span>
       </div>
 
       {/* Centered frosted-glass card — matches mockup proportions */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center px-6">
+      <div className="absolute inset-0 z-10 flex items-center justify-center px-4 sm:px-6">
         <div style={{
           background: 'rgba(30, 30, 38, 0.55)',
           border: '1px solid rgba(255, 255, 255, 0.10)',
           borderRadius: '16px',
-          padding: 'clamp(2.5rem, 5vw, 4rem) clamp(2.5rem, 6vw, 5rem)',
+          padding: 'clamp(1.5rem, 5vw, 4rem) clamp(1.2rem, 5vw, 5rem)',
           maxWidth: '680px',
           width: '100%',
+          maxHeight: '85vh',
+          overflowY: 'auto',
           backdropFilter: 'blur(32px) saturate(160%)',
           WebkitBackdropFilter: 'blur(32px) saturate(160%)',
           textAlign: 'center',
         }}>
           <h1 style={{
-            fontSize: 'clamp(2.6rem, 5.5vw, 4.2rem)',
+            fontSize: 'clamp(2rem, 8vw, 4.2rem)',
             fontWeight: 800, color: '#ffffff',
             letterSpacing: '-0.03em', lineHeight: 1.05,
             marginBottom: '1.2rem', marginTop: 0,
@@ -92,30 +94,32 @@ export default function MaintenanceOverlay() {
           </h1>
 
           <p style={{
-            fontSize: '1.05rem', color: 'rgba(255,255,255,0.70)',
-            lineHeight: 1.75, maxWidth: '500px',
-            margin: '0 auto 2.5rem',
+            fontSize: 'clamp(0.9rem, 3vw, 1.05rem)', color: 'rgba(255,255,255,0.70)',
+            lineHeight: 1.6, maxWidth: '500px',
+            margin: '0 auto 2rem',
           }}>
             We&apos;re currently performing scheduled maintenance to enhance your reading experience. The blog will be back online shortly. Thanks for your patience.
           </p>
 
           {/* CTA Buttons — outlined + blue filled, exactly like mockup */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '12px', flexWrap: 'wrap', width: '100%' }}>
             <a href="mailto:contact@adhi.is-a.dev" style={{
-              display: 'inline-flex', alignItems: 'center',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(255,255,255,0.08)', color: '#fff',
               border: '1px solid rgba(255,255,255,0.25)',
               padding: '12px 28px', borderRadius: '8px',
               fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none',
+              flex: '1 1 auto', minWidth: '160px'
             }}>
               Contact Support
             </a>
             <a href="https://adhi.is-a.dev" style={{
-              display: 'inline-flex', alignItems: 'center',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               background: '#1d4ed8', color: '#fff',
               border: '1px solid #2563eb',
               padding: '12px 28px', borderRadius: '8px',
               fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none',
+              flex: '1 1 auto', minWidth: '160px'
             }}>
               Visit Portfolio
             </a>
@@ -124,7 +128,8 @@ export default function MaintenanceOverlay() {
       </div>
 
       {/* Bottom-left System Maintenance pill — exactly like mockup */}
-      <div className="absolute bottom-6 left-6 z-10" style={{
+      <div className="absolute z-10" style={{
+        bottom: 'clamp(12px, 4vw, 24px)', left: 'clamp(12px, 4vw, 24px)',
         display: 'flex', alignItems: 'center', gap: '8px',
         background: 'rgba(22,22,28,0.80)', border: '1px solid rgba(255,255,255,0.12)',
         borderRadius: '100px', padding: '8px 16px',
