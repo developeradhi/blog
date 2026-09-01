@@ -45,9 +45,7 @@ export default function RootLayout({
     <html lang="en" className={`dark ${plusJakarta.variable} ${firaCode.variable}`}>
       <head>
         <style id="maintenance-anti-flicker" dangerouslySetInnerHTML={{ __html: 'body { opacity: 0 !important; pointer-events: none; }' }} />
-        <script dangerouslySetInnerHTML={{
-          __html: `setTimeout(function(){var el=document.getElementById('maintenance-anti-flicker');if(el)el.remove();}, 1500);`
-        }} />
+        {/* Anti-flicker is removed by MaintenanceOverlay.tsx — do NOT add an unconditional timeout here */}
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-[#070709] text-neutral-300 selection:bg-emerald-500/30 selection:text-emerald-200">
         <MaintenanceOverlay />

@@ -13,14 +13,24 @@ export default function AdminDashboard({ user }: { user: any }) {
   const [message, setMessage] = useState("");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [blogMaintenanceMode, setBlogMaintenanceMode] = useState(false);
-  
-  // Tabs: 'write' | 'manage' | 'settings'
+
+  // Tabs: 'write' | 'manage' | 'settings' | 'security'
   const [activeTab, setActiveTab] = useState('write');
   const [existingPosts, setExistingPosts] = useState<any[]>([]);
+
+  // 2FA Enrollment state
+  const [totpQR, setTotpQR] = useState("");
+  const [totpSecret, setTotpSecret] = useState("");
+  const [totpFactorId, setTotpFactorId] = useState("");
+  const [totpVerifyCode, setTotpVerifyCode] = useState("");
+  const [totpEnrolled, setTotpEnrolled] = useState(false);
+  const [totpMessage, setTotpMessage] = useState("");
+  const [totpLoading, setTotpLoading] = useState(false);
 
   useEffect(() => {
     fetchSettings();
     fetchPosts();
+    checkTotpEnrolled();
   }, []);
 
   const fetchSettings = async () => {
@@ -34,6 +44,46 @@ export default function AdminDashboard({ user }: { user: any }) {
   const fetchPosts = async () => {
     const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
     if (data) setExistingPosts(data);
+  };
+
+  const checkTotpEnrolled = async () => {
+    const { data } = await supabase.auth.mfa.listFactors();
+    setTotpEnrolled((data?.totp?.length ?? 0) > 0);
+  };
+
+  const startTotpEnrollment = async () => {
+    setTotpLoading(true);
+    setTotpMessage("");
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Nexus Admin 2FA" });
+    if (error || !data) {
+      setTotpMessage("Failed to start enrollment. Try again.");
+      setTotpLoading(false);
+      return;
+    }
+    setTotpQR(data.totp.qr_code);
+    setTotpSecret(data.totp.secret);
+    setTotpFactorId(data.id);
+    setTotpLoading(false);
+  };
+
+  const verifyTotpEnrollment = async () => {
+    if (!totpVerifyCode || totpVerifyCode.length !== 6) {
+      setTotpMessage("Enter a valid 6-digit code.");
+      return;
+    }
+    setTotpLoading(true);
+    const challenge = await supabase.auth.mfa.challenge({ factorId: totpFactorId });
+    if (challenge.error) { setTotpMessage("Challenge failed."); setTotpLoading(false); return; }
+    const verify = await supabase.auth.mfa.verify({ factorId: totpFactorId, challengeId: challenge.data.id, code: totpVerifyCode });
+    if (verify.error) {
+      setTotpMessage("Invalid code. Try again.");
+    } else {
+      setTotpEnrolled(true);
+      setTotpQR("");
+      setTotpSecret("");
+      setTotpMessage("2FA successfully enabled! Your account is now protected.");
+    }
+    setTotpLoading(false);
   };
 
   const handleLogout = async () => {
@@ -93,19 +143,30 @@ export default function AdminDashboard({ user }: { user: any }) {
     setIsSaving(true);
     setMessage("");
 
+    // Check if post already exists (edit vs new)
+    const { data: existing } = await supabase
+      .from("blog_posts")
+      .select("created_at")
+      .eq("slug", slug)
+      .single();
+
+    const now = new Date().toISOString();
+
     const { error } = await supabase.from("blog_posts").upsert({
       slug,
       title,
       excerpt,
       content,
-      created_at: new Date().toISOString()
-    });
+      // Only set created_at if this is a NEW post, never overwrite on edit
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    }, { onConflict: 'slug' });
 
     setIsSaving(false);
     if (error) {
       setMessage(`Error: ${error.message}`);
     } else {
-      setMessage("Post saved successfully!");
+      setMessage(existing ? "Post updated successfully!" : "Post published successfully!");
       setSlug("");
       setTitle("");
       setExcerpt("");
@@ -163,37 +224,44 @@ export default function AdminDashboard({ user }: { user: any }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-neutral-800 pb-4">
-        <button 
+      {/* Tabs — flex-wrap so they stack on mobile */}
+      <div className="flex flex-wrap gap-2 border-b border-neutral-800 pb-4">
+        <button
           onClick={() => setActiveTab('write')}
           className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'write' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
         >
-          Write / Edit Post
+          ✍️ Write
         </button>
-        <button 
+        <button
           onClick={() => { setActiveTab('manage'); fetchPosts(); }}
           className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'manage' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
         >
-          Manage Posts
+          📋 Posts
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('settings')}
           className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'settings' ? 'bg-emerald-500/10 text-emerald-500' : 'text-neutral-400 hover:text-white'}`}
         >
-          Site Settings
+          ⚙️ Settings
+        </button>
+        <button
+          onClick={() => setActiveTab('security')}
+          className={`text-sm font-bold px-4 py-2 rounded-md transition-colors ${activeTab === 'security' ? 'bg-amber-500/10 text-amber-400' : 'text-neutral-400 hover:text-white'}`}
+        >
+          🔐 Security {totpEnrolled ? '✅' : '⚠️'}
         </button>
       </div>
 
       {activeTab === 'write' && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-4">
+          {/* Responsive grid: 1 col on mobile, 2 cols on sm+ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm text-neutral-400 font-bold">URL Slug</label>
-              <input 
+              <input
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="e.g. 190826-1130" 
+                placeholder="e.g. 190826-1130"
                 className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-white focus:border-emerald-500 outline-none"
               />
             </div>
@@ -306,8 +374,8 @@ export default function AdminDashboard({ user }: { user: any }) {
                 <h3 className="font-bold text-white text-lg">Blog Platform</h3>
                 <p className="text-neutral-400 text-sm">blog.adhi.is-a.dev (Requires rebuild after toggling)</p>
               </div>
-              <button 
-                onClick={toggleBlogMaintenance} 
+              <button
+                onClick={toggleBlogMaintenance}
                 className={`text-sm font-bold py-3 px-6 rounded-lg transition-colors ${blogMaintenanceMode ? 'bg-red-500/20 text-red-500 border border-red-500' : 'bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white hover:bg-neutral-700'}`}
               >
                 {blogMaintenanceMode ? '🔴 System Offline' : '🟢 System Online'}
@@ -323,6 +391,107 @@ export default function AdminDashboard({ user }: { user: any }) {
           )}
         </div>
       )}
+
+      {/* ── SECURITY TAB ── */}
+      {activeTab === 'security' && (
+        <div className="flex flex-col gap-6">
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Account Security</h2>
+            <p className="text-sm text-neutral-500">Manage two-factor authentication for your admin account.</p>
+          </div>
+
+          {/* 2FA Status */}
+          <div className={`p-5 rounded-xl border ${totpEnrolled ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-2xl">{totpEnrolled ? '✅' : '⚠️'}</span>
+              <h3 className="font-bold text-white text-lg">
+                Two-Factor Authentication — {totpEnrolled ? 'Enabled' : 'Not Set Up'}
+              </h3>
+            </div>
+            <p className="text-sm text-neutral-400 ml-11">
+              {totpEnrolled
+                ? 'Your account is protected with TOTP 2FA. You will need your authenticator app every time you log in.'
+                : 'Your account is only protected by a password. Enable 2FA to add a second layer of security.'}
+            </p>
+          </div>
+
+          {/* Enrollment flow */}
+          {!totpEnrolled && (
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex flex-col gap-5">
+              {!totpQR ? (
+                <div className="flex flex-col gap-3">
+                  <h4 className="font-bold text-white">Set Up Authenticator App</h4>
+                  <p className="text-sm text-neutral-400">Use Google Authenticator, Authy, or any TOTP app. Click below to generate your QR code.</p>
+                  <button
+                    onClick={startTotpEnrollment}
+                    disabled={totpLoading}
+                    className="bg-amber-500 text-black font-bold py-3 px-6 rounded-lg hover:bg-amber-400 transition-colors disabled:opacity-50 self-start"
+                  >
+                    {totpLoading ? 'Generating...' : 'Generate QR Code'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <h4 className="font-bold text-white mb-2">Step 1 — Scan this QR code</h4>
+                    <div className="bg-white p-3 rounded-lg inline-block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={totpQR} alt="2FA QR Code" className="w-48 h-48" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white mb-1">Or enter manually:</h4>
+                    <code className="text-xs font-mono text-emerald-400 bg-neutral-800 px-3 py-2 rounded-lg block break-all">{totpSecret}</code>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h4 className="font-bold text-white">Step 2 — Enter the 6-digit code to verify</h4>
+                    <div className="flex gap-3 flex-wrap">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={totpVerifyCode}
+                        onChange={(e) => setTotpVerifyCode(e.target.value.replace(/\D/g, ''))}
+                        className="bg-neutral-800 border border-neutral-700 rounded-lg p-3 text-white text-center text-xl font-mono tracking-widest focus:border-amber-500 outline-none w-40"
+                      />
+                      <button
+                        onClick={verifyTotpEnrollment}
+                        disabled={totpLoading}
+                        className="bg-emerald-500 text-black font-bold py-3 px-6 rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-50"
+                      >
+                        {totpLoading ? 'Verifying...' : 'Activate 2FA'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {totpMessage && (
+                <p className={`text-sm font-mono ${totpMessage.includes('success') ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {totpMessage}
+                </p>
+              )}
+            </div>
+          )}
+
+          {totpEnrolled && totpMessage && (
+            <p className="text-emerald-400 font-mono text-sm">{totpMessage}</p>
+          )}
+
+          {/* Security tips */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+            <h4 className="font-bold text-white mb-3">Security Checklist</h4>
+            <ul className="flex flex-col gap-2 text-sm">
+              <li className="flex items-center gap-2 text-neutral-400"><span className={totpEnrolled ? 'text-emerald-400' : 'text-amber-400'}>{totpEnrolled ? '✅' : '⚠️'}</span> Two-Factor Authentication (TOTP)</li>
+              <li className="flex items-center gap-2 text-neutral-400"><span className="text-emerald-400">✅</span> Generic error messages on login</li>
+              <li className="flex items-center gap-2 text-neutral-400"><span className="text-emerald-400">✅</span> Rate limiting (5 attempts / 15 min lockout)</li>
+              <li className="flex items-center gap-2 text-neutral-400"><span className="text-emerald-400">✅</span> Session token in localStorage (managed by Supabase SDK)</li>
+              <li className="flex items-center gap-2 text-neutral-400"><span className="text-amber-400">⚠️</span> Email verification — enable in Supabase Dashboard → Auth → Settings</li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
