@@ -1,68 +1,73 @@
-import Link from "next/link";
-import { getSortedPostsData } from "@/lib/posts";
+import Link from 'next/link';
+import { ArrowRight, Terminal, BookOpen, Clock } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mznzvxwzugimqzhhdnae.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16bnp2eHd6dWdpbXF6aGhkbmFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5ODkzNjksImV4cCI6MjEwMTU2NTM2OX0.AL0sY92IZeP_vSyqYRoKoKkE3oMPvNYukNU3uNbJhWs';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default async function Home() {
-  const allPostsData = await getSortedPostsData();
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false });
 
   return (
-    <div className="flex flex-col gap-16 pb-20">
-      {/* Premium Hero Section */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/20 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col items-center text-center gap-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium tracking-wide mb-4">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Adarsh B A • Developer Blog
-          </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
-            Engineering & <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-              System Architecture
-            </span>
-          </h1>
-          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed mt-4">
-            Deep technical dives into Full-Stack Development, scalable architectures, and modern web technologies.
-          </p>
-        </div>
-      </section>
+    <main className="min-h-screen bg-[#070709] text-slate-200 overflow-hidden relative font-sans">
+      <div className="ambient-glow"></div>
+      <div className="noise-overlay"></div>
 
-      {/* Post Grid */}
-      <section className="max-w-4xl mx-auto w-full px-4">
-        <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-          <span className="w-8 h-[2px] bg-emerald-500" />
-          Latest Transmissions
-        </h2>
-        <div className="grid grid-cols-1 gap-6">
-          {allPostsData.map(({ slug, title, date, excerpt }) => (
-            <article key={slug} className="group relative flex flex-col gap-4 p-8 rounded-3xl bg-neutral-900/40 border border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-900/80 transition-all duration-300 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <Link href={`/${slug}`} className="absolute inset-0 z-10">
-                <span className="sr-only">View Article</span>
-              </Link>
-              
-              <div className="flex items-center gap-3 text-sm text-neutral-500 font-mono">
-                <time dateTime={date}>{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time>
-                <span>•</span>
-                <span>Post #{slug}</span>
+      <div className="max-w-5xl mx-auto px-6 py-24 relative z-10">
+        <header className="mb-20 fade-in">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide uppercase mb-6">
+            <Terminal size={14} /> Engineering Journal
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-slate-300 to-indigo-400">
+            Building at the <br className="hidden md:block"/> Edge of Compute.
+          </h1>
+          <p className="text-lg text-slate-400 max-w-2xl leading-relaxed">
+            Deep dives into frontend architecture, database reliability, and the engineering decisions behind scalable applications.
+          </p>
+        </header>
+
+        <section>
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+            <h2 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+              <BookOpen size={24} className="text-indigo-400" /> Latest Entries
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {posts && posts.length > 0 ? (
+              posts.map(post => (
+                <Link key={post.id} href={`/blog/${post.slug}`} className="group block h-full">
+                  <article className="glass-panel rounded-3xl p-8 h-full transition-all duration-300 hover:bg-white/[0.02] hover:-translate-y-1">
+                    <div className="flex items-center gap-3 text-xs font-medium text-slate-500 mb-4">
+                      <time dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString()}</time>
+                      <span>•</span>
+                      <span className="flex items-center gap-1"><Clock size={12}/> {post.reading_time || '5'} min read</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-3 group-hover:text-indigo-400 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center gap-2 text-indigo-400 text-sm font-semibold mt-auto">
+                      Read entry <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </article>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-2 text-center p-12 border border-dashed border-white/10 rounded-3xl bg-black/20">
+                <p className="text-slate-400">No transmissions found. Establish uplink to Supabase Database to begin.</p>
               </div>
-              
-              <h3 className="text-2xl font-bold text-neutral-200 group-hover:text-emerald-400 transition-colors">
-                {title}
-              </h3>
-              
-              <p className="text-neutral-400 leading-relaxed">
-                {excerpt}
-              </p>
-              
-              <div className="mt-4 flex items-center text-sm font-bold text-emerald-500 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                Read full article <span className="ml-2">→</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

@@ -102,7 +102,7 @@ export default function MaintenanceOverlay() {
           </p>
 
           {/* CTA Buttons — outlined + blue filled, exactly like mockup */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '12px', flexWrap: 'wrap', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', width: '100%' }}>
             <a href="mailto:contact@adhi.is-a.dev" style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(255,255,255,0.08)', color: '#fff',

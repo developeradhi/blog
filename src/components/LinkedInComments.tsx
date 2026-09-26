@@ -60,7 +60,7 @@ export default function LinkedInComments({ slug }: { slug: string }) {
     <div className="mt-16 pt-8 border-t border-neutral-800">
       <h2 className="text-2xl font-bold text-white mb-6">Discussion</h2>
       
-      <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-6 backdrop-blur-md">
+      <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-4 sm:p-6 backdrop-blur-md">
         
         {/* Name Input */}
         <div className="mb-4">
@@ -123,7 +123,7 @@ export default function LinkedInComments({ slug }: { slug: string }) {
                   </div>
                   
                   {/* Static Reaction Bar (Mockup for now) */}
-                  <div className="flex items-center gap-1 mt-1 px-2">
+                  <div className="flex flex-wrap items-center gap-1 mt-1 px-2">
                     <ReactionButton icon="👍" label="Like" />
                     <ReactionButton icon="👏" label="Celebrate" />
                     <ReactionButton icon="❤️" label="Support" />
