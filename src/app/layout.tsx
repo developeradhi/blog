@@ -45,7 +45,7 @@ export default function RootLayout({
               <span>ADARSH <span className="text-zinc-500 font-normal">JOURNAL</span></span>
             </Link>
             <div className="flex items-center gap-4 sm:gap-8 text-xs font-semibold tracking-wider uppercase">
-              <a href="https://adhi.is-a.dev" target="_blank" className="text-zinc-500 hover:text-white transition-colors">Portfolio</a>
+              <a href="https://adhi.is-a.dev" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Portfolio</a>
               <a href="/nexus" className="text-zinc-500 hover:text-white transition-colors">Nexus</a>
             </div>
           </nav>
