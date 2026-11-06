@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /nexus
+Disallow: /nexus/
 
 Sitemap: https://blog.adhi.is-a.dev/sitemap.xml

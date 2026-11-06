@@ -6,7 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
+      disallow: ['/nexus', '/nexus/'],
     },
-    sitemap: 'https://developeradhi.is-a.dev/blog/sitemap.xml',
+    sitemap: 'https://blog.adhi.is-a.dev/sitemap.xml',
   };
 }

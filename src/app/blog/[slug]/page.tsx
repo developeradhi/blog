@@ -19,21 +19,38 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const postData = await getPostData(resolvedParams.slug);
   if (!postData) return { title: "Post Not Found | Adarsh B A" };
 
+  const url = `https://blog.adhi.is-a.dev/blog/${postData.slug}`;
+
   return {
     title: `${postData.title} | Adarsh B A`,
     description: postData.excerpt,
-    authors: [{ name: "Adarsh B A" }],
+    authors: [{ name: "Adarsh B A", url: "https://adhi.is-a.dev" }],
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title: `${postData.title} | Adarsh B A`,
       description: postData.excerpt,
+      url,
       type: "article",
       publishedTime: postData.date,
       authors: ["Adarsh B A"],
+      images: [
+        {
+          url: "https://adhi.is-a.dev/assets/preview.png",
+          width: 1200,
+          height: 630,
+          alt: postData.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${postData.title} | Adarsh B A`,
       description: postData.excerpt,
+      site: "@itzz__adhi",
+      creator: "@itzz__adhi",
+      images: ["https://adhi.is-a.dev/assets/preview.png"],
     },
   };
 }
@@ -48,8 +65,36 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     notFound();
   }
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: postData.title,
+    description: postData.excerpt,
+    datePublished: postData.date,
+    dateModified: postData.date,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://blog.adhi.is-a.dev/blog/${postData.slug}`,
+    },
+    author: {
+      "@type": "Person",
+      name: "Adarsh B A",
+      url: "https://adhi.is-a.dev",
+    },
+    publisher: {
+      "@type": "Person",
+      name: "Adarsh B A",
+      url: "https://adhi.is-a.dev",
+    },
+    image: "https://adhi.is-a.dev/assets/preview.png",
+  };
+
   return (
     <article className="flex flex-col gap-8 max-w-3xl mx-auto w-full">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <header className="flex flex-col gap-4 border-b border-neutral-800 pb-8 pt-8">
         <Link href="/" className="text-sm font-mono text-emerald-500 hover:text-emerald-400 mb-4 inline-flex items-center gap-2 transition-colors">
           &larr; Back to all posts
