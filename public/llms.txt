@@ -1,0 +1,19 @@
+# Adarsh B A - Engineering Journal
+
+> Official engineering journal and technical research publications of Adarsh B A.
+> Main publication: https://blog.adhi.is-a.dev
+> Portfolio: https://adhi.is-a.dev
+> Author: Adarsh B A (Full-Stack Software Engineer)
+
+## About This Publication
+Adarsh's Engineering Journal focuses on in-depth analysis of scalable systems, modern frontend architecture, database engineering, and distributed cloud applications.
+
+## Key Topics Covered
+- High-performance web architectures (Next.js, React, Web Workers, Service Workers)
+- Database modeling, offline fallback synchronization, and RBAC policies
+- Real-time communication protocols (WebRTC, WebSockets, STUN/TURN)
+- Security hardening (Zero-trust architecture, CSRF/XSS mitigation, rate-limiting)
+
+## Canonical Sitemap
+- XML Sitemap: https://blog.adhi.is-a.dev/sitemap.xml
+- Author Credentials & Portfolio: https://adhi.is-a.dev/llms.txt

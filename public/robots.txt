@@ -1,6 +1,55 @@
+# Global Web Crawlers
 User-agent: *
 Allow: /
 Disallow: /nexus
 Disallow: /nexus/
 
+# AI Search & Large Language Model Crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: CCBot
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /nexus
+Disallow: /nexus/
+
+# Sitemap & AI Manifest
 Sitemap: https://blog.adhi.is-a.dev/sitemap.xml
+# AI Manifest: https://blog.adhi.is-a.dev/llms.txt
